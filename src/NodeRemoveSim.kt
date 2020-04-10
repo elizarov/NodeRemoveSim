@@ -15,7 +15,7 @@ class Process(val node: Node) {
     var next: Node? = null // rightmost alive
 
     val isFinal: Boolean
-        get() = step == -1
+        get() = step == 7
 }
 
 data class Parent(val from: State, val processIndex: Int)
@@ -112,21 +112,21 @@ class State(val nNodes: Int, removeNodes: List<Int>, val parent: Parent? = null)
         }
         6 -> {
             if (prev!!.removed) step = 1
-            step = -1 // done
+            step = 7 // done
         }
-        -1 -> { /* done, nothing more to do */ }
+        7 -> { /* done, nothing more to do */ }
         else -> error("Invalid step=$step")
     }
 
     fun Process.explainStep(): String = when (step) {
         0 -> "node.removed = true"
-        1 -> "prev = leftmostAliveNode"
-        2 -> "next = rightmostAliveNode"
-        3 -> "next.prev = prev"
-        4 -> "prev.next = next"
+        1 -> "prev = node.leftmostAliveNode"
+        2 -> "next = node.rightmostAliveNode"
+        3 -> "node.next.prev = prev"
+        4 -> "node.prev.next = next"
         5 -> "if (next.removed) continue"
         6 -> "if (prev.removed) continue"
-        -1 -> "return"
+        7 -> "return"
         else -> error("Invalid step=$step")
     }
 
@@ -139,7 +139,8 @@ tailrec fun State.explainExecution(to: ArrayList<String> = ArrayList()): List<St
         return to
     }
     val (from, j) = parent
-    to += "$from -> P${j}: ${from.processes[j].explainStep()}"
+    val proc = from.processes[j]
+    to += "$from -> P${proc.node.i} @${proc.step}: ${proc.explainStep()}"
     return from.explainExecution(to)
 }
 
