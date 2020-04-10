@@ -13,10 +13,10 @@ while (true) {
     node.next.prev = prev                 // @3
     node.prev.next = next                 // @4
     // Check that prev and next are still alive.
-    if (next.removed) continue           // @5
-    if (prev.removed) continue           // @6
+    if (next.removed) continue            // @5
+    if (prev.removed) continue            // @6
     // This node is removed.
-    return                               // @7
+    return                                // the final state
 }
 ``` 
 

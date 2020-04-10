@@ -15,7 +15,7 @@ class Process(val node: Node) {
     var next: Node? = null // rightmost alive
 
     val isFinal: Boolean
-        get() = step == 7
+        get() = step == -1
 }
 
 data class Parent(val from: State, val processIndex: Int)
@@ -112,9 +112,9 @@ class State(val nNodes: Int, removeNodes: List<Int>, val parent: Parent? = null)
         }
         6 -> {
             if (prev!!.removed) step = 1
-            step = 7 // done
+            step = -1 // done
         }
-        7 -> { /* done, nothing more to do */ }
+        -1 -> { /* done, nothing more to do */ }
         else -> error("Invalid step=$step")
     }
 
@@ -126,7 +126,7 @@ class State(val nNodes: Int, removeNodes: List<Int>, val parent: Parent? = null)
         4 -> "node.prev.next = next"
         5 -> "if (next.removed) continue"
         6 -> "if (prev.removed) continue"
-        7 -> "return"
+        -1 -> "return"
         else -> error("Invalid step=$step")
     }
 
