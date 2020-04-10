@@ -4,9 +4,23 @@ class Node(val i: Int) {
     var removed = false
 
     override fun toString(): String = "N$i(" +
-        "next=${next?.i?.toString() ?: "_"}," +
-        "prev=${prev?.i?.toString() ?: "_"}," +
+        "next=${next.id()}," +
+        "prev=${prev.id()}," +
         "${if (removed) "R" else "A"})"
+}
+
+fun Node?.id() = this?.i?.toString() ?: "_"
+
+fun Node.rightmostAliveNode(): Node {
+    var cur = next!!
+    while (cur.removed) cur = cur.next!!
+    return cur
+}
+
+fun Node.leftmostAliveNode(): Node {
+    var cur = prev!!
+    while (cur.removed) cur = cur.prev!!
+    return cur
 }
 
 class Process(val node: Node) {
@@ -87,15 +101,11 @@ class State(val nNodes: Int, removeNodes: List<Int>, val parent: Parent? = null)
             step = 1
         }
         1 -> {
-            var cur = node.prev!!
-            while (cur.removed) cur = cur.prev!!
-            prev = cur
+            prev = node.leftmostAliveNode()
             step = 2
         }
         2 -> {
-            var cur = node.next!!
-            while (cur.removed) cur = cur.next!!
-            next = cur
+            next = node.rightmostAliveNode()
             step = 3
         }
         3 -> {
@@ -107,25 +117,24 @@ class State(val nNodes: Int, removeNodes: List<Int>, val parent: Parent? = null)
             step = 5
         }
         5 -> {
-            if (next!!.removed) step = 1
-            step = 6
+            step = if (next!!.removed) 1 else 6
         }
         6 -> {
-            if (prev!!.removed) step = 1
-            step = -1 // done
+            step = if (prev!!.removed) 1 else -1
         }
-        -1 -> { /* done, nothing more to do */ }
+        -1 -> { /* done, nothing more to do */
+        }
         else -> error("Invalid step=$step")
     }
 
     fun Process.explainStep(): String = when (step) {
-        0 -> "node.removed = true"
-        1 -> "prev = node.leftmostAliveNode"
-        2 -> "next = node.rightmostAliveNode"
-        3 -> "next.prev = prev"
-        4 -> "prev.next = next"
-        5 -> "if (next.removed) continue"
-        6 -> "if (prev.removed) continue"
+        0 -> "node.removed = true // node=${node.id()}"
+        1 -> "prev = node.leftmostAliveNode // node=${node.id()}, prev<-${node.leftmostAliveNode().id()}"
+        2 -> "next = node.rightmostAliveNode // node=${node.id()}, next<-${node.rightmostAliveNode().id()}"
+        3 -> "next.prev = prev // next=${next.id()}, prev=N${prev.id()}"
+        4 -> "prev.next = next // next=${next.id()}, prev=N${prev.id()}"
+        5 -> "if (next.removed) continue // next=${next.id()}, removed=${next?.removed}"
+        6 -> "if (prev.removed) continue // prev=${prev.id()}, removed=${prev?.removed}"
         -1 -> "return"
         else -> error("Invalid step=$step")
     }
@@ -146,7 +155,7 @@ tailrec fun State.explainExecution(to: ArrayList<String> = ArrayList()): List<St
 
 
 fun main() {
-    val initial = State(4,  listOf(1, 2))
+    val initial = State(4, listOf(1, 2))
     initial.validate()?.let { error(it) }
     val queue = ArrayDeque<State>()
     val seen = HashSet<State>()
